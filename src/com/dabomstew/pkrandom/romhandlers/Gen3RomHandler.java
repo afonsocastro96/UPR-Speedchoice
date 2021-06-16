@@ -1294,7 +1294,8 @@ public class Gen3RomHandler extends AbstractGBRomHandler {
             }
             if (treePokes >= 0 && treePokes < rom.length && rom[treePokes] != 0
                     && !seenOffsets.contains(readPointer(treePokes + 4))) {
-                encounterAreas.add(readWildArea(treePokes, Gen3Constants.rockSmashSlots, mapName + " Rock Smash"));
+                int numSlots = romEntry.romCode.matches("^(SPDC|MBDN)$") ? 2 : Gen3Constants.rockSmashSlots;
+                encounterAreas.add(readWildArea(treePokes, numSlots, mapName + " Rock Smash"));
                 seenOffsets.add(readPointer(treePokes + 4));
             }
             if (fishPokes >= 0 && fishPokes < rom.length && rom[fishPokes] != 0
@@ -1421,7 +1422,8 @@ public class Gen3RomHandler extends AbstractGBRomHandler {
             }
             if (treePokes >= 0 && treePokes < rom.length && rom[treePokes] != 0
                     && !seenOffsets.contains(readPointer(treePokes + 4))) {
-                writeWildArea(treePokes, Gen3Constants.rockSmashSlots, encounterAreas.next(), false);
+                int numSlots = romEntry.romCode.matches("^(SPDC|MBDN)$") ? 2 : Gen3Constants.rockSmashSlots;
+                writeWildArea(treePokes, numSlots, encounterAreas.next(), false);
                 seenOffsets.add(readPointer(treePokes + 4));
             }
             if (fishPokes >= 0 && fishPokes < rom.length && rom[fishPokes] != 0
@@ -3125,6 +3127,12 @@ public class Gen3RomHandler extends AbstractGBRomHandler {
     @Override
     public boolean supportsFourStartingMoves() {
         return true;
+    }
+
+    @Override
+    public List<Integer> getGameBreakingMoves() {
+        // add OHKO moves for gen3 because they suck
+        return Gen3Constants.brokenMoves;
     }
 
     @Override

@@ -162,6 +162,8 @@ public class Gen3Constants {
     public static final List<Integer> rseEarlyRequiredHMMoves = Arrays.asList(249);
 
     public static final List<Integer> frlgEarlyRequiredHMMoves = Arrays.asList(15);
+
+    public static final List<Integer> brokenMoves = Arrays.asList(49, 82, 32, 90, 12, 329);
     
     public static final int luckyEggIndex = 0xC5;
 
