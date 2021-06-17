@@ -1423,7 +1423,7 @@ public class Gen3RomHandler extends AbstractGBRomHandler {
             if (treePokes >= 0 && treePokes < rom.length && rom[treePokes] != 0
                     && !seenOffsets.contains(readPointer(treePokes + 4))) {
                 int numSlots = romEntry.romCode.matches("^(SPDC|MBDN)$") ? 2 : Gen3Constants.rockSmashSlots;
-                writeWildArea(treePokes, numSlots, encounterAreas.next(), false);
+                writeWildAreaRocks(treePokes, numSlots, encounterAreas.next());
                 seenOffsets.add(readPointer(treePokes + 4));
             }
             if (fishPokes >= 0 && fishPokes < rom.length && rom[fishPokes] != 0
@@ -1627,6 +1627,33 @@ public class Gen3RomHandler extends AbstractGBRomHandler {
                 writeWord(dataOffset + (i + numOfEntries) * 4 + 2, pokedexToInternal[enc.pokemon.number]);
             }
         }
+    }
+
+    private void writeWildAreaRocks(int offset, int numOfEntries, EncounterSet encounters) {
+        if (romEntry.romCode.equals("MBDN"))
+        {
+            // Grab the *real* pointer to data
+            int dataOffset = readPointer(offset + 4);
+
+            // Write the entries - 0 0 1 1 1
+            for(int i = 0; i < numOfEntries; i++) {
+                Encounter enc = encounters.encounters.get(i);
+                // 0 0 1 1 1 - doing this as switch case to keep consistency with fishing slots function
+                switch (i) {
+                    case 0:
+                        writeWord(dataOffset + 2, pokedexToInternal[enc.pokemon.number]);
+                        writeWord(dataOffset + (i + 1) * 4 + 2, pokedexToInternal[enc.pokemon.number]);
+                        break;
+                    case 1:
+                        writeWord(dataOffset + (i + 1) * 4 + 2, pokedexToInternal[enc.pokemon.number]);
+                        writeWord(dataOffset + (i + 2) * 4 + 2, pokedexToInternal[enc.pokemon.number]);
+                        writeWord(dataOffset + (i + 3) * 4 + 2, pokedexToInternal[enc.pokemon.number]);
+                        break;
+                }
+            }
+        }
+        else // Proceed as usual, use writeWildArea instead
+            writeWildArea(offset, numOfEntries, encounters, false);
     }
 
     private void writeWildAreaFishing(int offset, int numOfEntries, EncounterSet encounters) {
