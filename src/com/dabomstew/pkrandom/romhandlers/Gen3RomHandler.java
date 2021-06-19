@@ -1295,7 +1295,7 @@ public class Gen3RomHandler extends AbstractGBRomHandler {
             if (treePokes >= 0 && treePokes < rom.length && rom[treePokes] != 0
                     && !seenOffsets.contains(readPointer(treePokes + 4))) {
                 int numSlots = romEntry.romCode.matches("^(SPDC|MBDN)$") ? 2 : Gen3Constants.rockSmashSlots;
-                encounterAreas.add(readWildArea(treePokes, numSlots, mapName + " Rock Smash"));
+                encounterAreas.add(readWildAreaRocks(treePokes, numSlots, mapName + " Rock Smash"));
                 seenOffsets.add(readPointer(treePokes + 4));
             }
             if (fishPokes >= 0 && fishPokes < rom.length && rom[fishPokes] != 0
@@ -1384,6 +1384,32 @@ public class Gen3RomHandler extends AbstractGBRomHandler {
             thisSet.encounters.add(enc);
         }
         return thisSet;
+    }
+
+    private EncounterSet readWildAreaRocks(int offset, int numOfEntries, String setName) {
+        if (romEntry.romCode.equals("MBDN"))
+        {
+            EncounterSet thisSet = new EncounterSet();
+            thisSet.rate = rom[offset];
+            thisSet.displayName = setName;
+            // Grab the *real* pointer to data
+            int dataOffset = readPointer(offset + 4);
+            // Slots are 0 0 1 1 1 1, so grab index #1 and #2 instead to get both encounters
+            for(int i = 0; i < numOfEntries; i++) {
+                Encounter enc = new Encounter();
+                enc.level = rom[dataOffset + (i + 1) * 4];
+                enc.maxLevel = rom[dataOffset + (i + 1) * 4 + 1];
+                try {
+                    enc.pokemon = pokesInternal[readWord(dataOffset + (i + 1) * 4 + 2)];
+                } catch (ArrayIndexOutOfBoundsException ex) {
+                    throw ex;
+                }
+                thisSet.encounters.add(enc);
+            }
+            return thisSet;
+        }
+        else // Proceed as usual, use writeWildArea instead
+            return readWildArea(offset, numOfEntries, setName);
     }
 
     @Override
@@ -1630,7 +1656,7 @@ public class Gen3RomHandler extends AbstractGBRomHandler {
     }
 
     private void writeWildAreaRocks(int offset, int numOfEntries, EncounterSet encounters) {
-        if (romEntry.romCode.equals("MBDN"))
+        if (romEntry.romCode.matches("^(SPDC|MBDN)$"))
         {
             // Grab the *real* pointer to data
             int dataOffset = readPointer(offset + 4);
