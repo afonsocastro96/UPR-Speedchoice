@@ -1387,7 +1387,7 @@ public class Gen3RomHandler extends AbstractGBRomHandler {
     }
 
     private EncounterSet readWildAreaRocks(int offset, int numOfEntries, String setName) {
-        if (romEntry.romCode.equals("MBDN"))
+        if (romEntry.romCode.equals("MBDN")) // Firered speedchoice
         {
             EncounterSet thisSet = new EncounterSet();
             thisSet.rate = rom[offset];
@@ -1719,18 +1719,27 @@ public class Gen3RomHandler extends AbstractGBRomHandler {
                         break;
                 }
             }
+            else if (romEntry.romCode.equals("SPDC")) { // Emerald speedchoice
+                // OLD: 0 1
+                // GOOD: 0 1 0
+                // SUPER: 0 1 0 1 0
+                switch (i)
+                {
+                    case 0:
+                        writeWord(dataOffset + (i + 4) * 4 + 2, pokedexToInternal[enc.pokemon.number]);
+                        writeWord(dataOffset + (i + 9) * 4 + 2, pokedexToInternal[enc.pokemon.number]);
+                    case 1:
+                        writeWord(dataOffset + i * 4 + 2, pokedexToInternal[enc.pokemon.number]);
+                        writeWord(dataOffset + (i + 2) * 4 + 2, pokedexToInternal[enc.pokemon.number]);
+                        writeWord(dataOffset + (i + 5) * 4 + 2, pokedexToInternal[enc.pokemon.number]);
+                        writeWord(dataOffset + (i + 7) * 4 + 2, pokedexToInternal[enc.pokemon.number]);
+                        break;
+                }
+            }
             else
             {
                 // min, max, species, species
                 writeWord(dataOffset + i * 4 + 2, pokedexToInternal[enc.pokemon.number]);
-                // Speedchoice duplication.. 4 extra times
-                if (romEntry.romCode.equals("SPDC")) // Emerald speedchoice
-                {
-                    writeWord(dataOffset + (i + numOfEntries) * 4 + 2, pokedexToInternal[enc.pokemon.number]);
-                    writeWord(dataOffset + (i + numOfEntries * 2) * 4 + 2, pokedexToInternal[enc.pokemon.number]);
-                    writeWord(dataOffset + (i + numOfEntries * 3) * 4 + 2, pokedexToInternal[enc.pokemon.number]);
-                    writeWord(dataOffset + (i + numOfEntries * 4) * 4 + 2, pokedexToInternal[enc.pokemon.number]);
-                }
             }
         }
     }
@@ -2492,22 +2501,25 @@ public class Gen3RomHandler extends AbstractGBRomHandler {
         for (Pokemon pkmn : pokes) {
             if (pkmn != null) {
                 for (Evolution evo : pkmn.evolutionsFrom) {
-                    // Not trades, but impossible without trading
-                    if (evo.type == EvolutionType.HAPPINESS_DAY && romEntry.romType == Gen3Constants.RomType_FRLG) {
+                    // Not trades, but impossible without trading. Also, make Emerald speedchoice support it
+                    if (evo.type == EvolutionType.HAPPINESS_DAY &&
+                            (romEntry.romType == Gen3Constants.RomType_FRLG || romEntry.romCode.equals("SPDC"))) {
                         // happiness day change to Sun Stone
                         evo.type = EvolutionType.STONE;
                         evo.extraInfo = Gen3Constants.sunStoneIndex; // sun
                                                                      // stone
                         logEvoChangeStone(evo.from.name, evo.to.name, itemNames[Gen3Constants.sunStoneIndex]);
                     }
-                    if (evo.type == EvolutionType.HAPPINESS_NIGHT && romEntry.romType == Gen3Constants.RomType_FRLG) {
+                    if (evo.type == EvolutionType.HAPPINESS_NIGHT &&
+                            (romEntry.romType == Gen3Constants.RomType_FRLG || romEntry.romCode.equals("SPDC"))) {
                         // happiness night change to Moon Stone
                         evo.type = EvolutionType.STONE;
                         evo.extraInfo = Gen3Constants.moonStoneIndex; // moon
                                                                       // stone
                         logEvoChangeStone(evo.from.name, evo.to.name, itemNames[Gen3Constants.moonStoneIndex]);
                     }
-                    if (evo.type == EvolutionType.LEVEL_HIGH_BEAUTY && romEntry.romType == Gen3Constants.RomType_FRLG) {
+                    if (evo.type == EvolutionType.LEVEL_HIGH_BEAUTY &&
+                            (romEntry.romType == Gen3Constants.RomType_FRLG || romEntry.romCode.equals("SPDC"))) {
                         // beauty change to level 35
                         evo.type = EvolutionType.LEVEL;
                         evo.extraInfo = 35;
