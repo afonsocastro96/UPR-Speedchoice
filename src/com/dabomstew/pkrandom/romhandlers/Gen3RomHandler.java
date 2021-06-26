@@ -1289,7 +1289,7 @@ public class Gen3RomHandler extends AbstractGBRomHandler {
             }
             if (waterPokes >= 0 && waterPokes < rom.length && rom[waterPokes] != 0
                     && !seenOffsets.contains(readPointer(waterPokes + 4))) {
-                int numSlots = romEntry.romCode.equals("MBDN") ? 3 : Gen3Constants.rockSmashSlots;
+                int numSlots = romEntry.romCode.equals("MBDN") ? 3 : Gen3Constants.surfingSlots;
                 encounterAreas.add(readWildAreaWater(waterPokes, numSlots, mapName + " Surfing"));
                 seenOffsets.add(readPointer(waterPokes + 4));
             }
@@ -1459,7 +1459,7 @@ public class Gen3RomHandler extends AbstractGBRomHandler {
             }
             if (waterPokes >= 0 && waterPokes < rom.length && rom[waterPokes] != 0
                     && !seenOffsets.contains(readPointer(waterPokes + 4))) {
-                int numSlots = romEntry.romCode.equals("MBDN") ? 3 : Gen3Constants.grassSlots;
+                int numSlots = romEntry.romCode.equals("MBDN") ? 3 : Gen3Constants.surfingSlots;
                 writeWildAreaWater(waterPokes, numSlots, encounterAreas.next());
                 seenOffsets.add(readPointer(waterPokes + 4));
             }
