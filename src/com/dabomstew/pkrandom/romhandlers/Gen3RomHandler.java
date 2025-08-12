@@ -1306,6 +1306,10 @@ public class Gen3RomHandler extends AbstractGBRomHandler {
                 seenOffsets.add(readPointer(fishPokes + 4));
             }
 
+            // Route 21 is split in two encounter tables. We want to merge them in the Speedchoice ROM
+            if (romEntry.romCode.equals("MBDN") && mapName.equals("ROUTE 21"))
+                offs += 20;
+
             offs += 20;
         }
         if (romEntry.arrayEntries.containsKey("BattleTrappersBanned")) {
@@ -1460,8 +1464,15 @@ public class Gen3RomHandler extends AbstractGBRomHandler {
             if (waterPokes >= 0 && waterPokes < rom.length && rom[waterPokes] != 0
                     && !seenOffsets.contains(readPointer(waterPokes + 4))) {
                 int numSlots = romEntry.romCode.equals("MBDN") ? 3 : Gen3Constants.surfingSlots;
-                writeWildAreaWater(waterPokes, numSlots, encounterAreas.next());
+                EncounterSet encounterSet = encounterAreas.next();
+                writeWildAreaWater(waterPokes, numSlots, encounterSet);
                 seenOffsets.add(readPointer(waterPokes + 4));
+                // Route 21 is split in two encounter tables. We want to merge them in the Speedchoice ROM
+                if(mapNames[bank][map].equals("ROUTE 21") && romEntry.romCode.equals("MBDN")) {
+                    int waterPokesNextMap = readPointer(offs + 20 + 8);
+                    writeWildAreaWater(waterPokesNextMap, numSlots, encounterSet);
+                    seenOffsets.add(readPointer(waterPokesNextMap + 4));
+                }
             }
             if (treePokes >= 0 && treePokes < rom.length && rom[treePokes] != 0
                     && !seenOffsets.contains(readPointer(treePokes + 4))) {
@@ -1472,10 +1483,21 @@ public class Gen3RomHandler extends AbstractGBRomHandler {
             if (fishPokes >= 0 && fishPokes < rom.length && rom[fishPokes] != 0
                     && !seenOffsets.contains(readPointer(fishPokes + 4))) {
                 int numSlots = romEntry.romCode.matches("^(SPDC|MBDN)$") ? 2 : Gen3Constants.fishingSlots;
-                writeWildAreaFishing(fishPokes, numSlots, encounterAreas.next());
+                EncounterSet encounterSet = encounterAreas.next();
+                writeWildAreaFishing(fishPokes, numSlots, encounterSet);
                 seenOffsets.add(readPointer(fishPokes + 4));
+                // Route 21 is split in two encounter tables. We want to merge them in the Speedchoice ROM
+                if(mapNames[bank][map].equals("ROUTE 21") && romEntry.romCode.equals("MBDN")) {
+                    int fishPokesNextMap = readPointer(offs + 20 + 16);
+                    writeWildAreaFishing(fishPokesNextMap, numSlots, encounterSet);
+                    seenOffsets.add(readPointer(fishPokesNextMap + 4));
+                }
+
             }
 
+            // Route 21 is split in two encounter tables. We want to merge them in the Speedchoice ROM
+            if (romEntry.romCode.equals("MBDN") && mapNames[bank][map].equals("ROUTE 21"))
+                offs += 20;
             offs += 20;
         }
     }
@@ -2532,9 +2554,9 @@ public class Gen3RomHandler extends AbstractGBRomHandler {
         for (Pokemon pkmn : pokes) {
             if (pkmn != null) {
                 for (Evolution evo : pkmn.evolutionsFrom) {
-                    // Not trades, but impossible without trading. Also, make Emerald speedchoice support it
+                    // Not trades, but impossible without trading. Also, make Emerald and FR speedchoice support it
                     if (evo.type == EvolutionType.HAPPINESS_DAY &&
-                            (romEntry.romType == Gen3Constants.RomType_FRLG || romEntry.romCode.equals("SPDC"))) {
+                            (romEntry.romType == Gen3Constants.RomType_FRLG || romEntry.romCode.matches("^(SPDC|MBDN)$"))) {
                         // happiness day change to Sun Stone
                         evo.type = EvolutionType.STONE;
                         evo.extraInfo = Gen3Constants.sunStoneIndex; // sun
@@ -2542,7 +2564,7 @@ public class Gen3RomHandler extends AbstractGBRomHandler {
                         logEvoChangeStone(evo.from.name, evo.to.name, itemNames[Gen3Constants.sunStoneIndex]);
                     }
                     if (evo.type == EvolutionType.HAPPINESS_NIGHT &&
-                            (romEntry.romType == Gen3Constants.RomType_FRLG || romEntry.romCode.equals("SPDC"))) {
+                            (romEntry.romType == Gen3Constants.RomType_FRLG || romEntry.romCode.matches("^(SPDC|MBDN)$"))) {
                         // happiness night change to Moon Stone
                         evo.type = EvolutionType.STONE;
                         evo.extraInfo = Gen3Constants.moonStoneIndex; // moon
@@ -2550,7 +2572,7 @@ public class Gen3RomHandler extends AbstractGBRomHandler {
                         logEvoChangeStone(evo.from.name, evo.to.name, itemNames[Gen3Constants.moonStoneIndex]);
                     }
                     if (evo.type == EvolutionType.LEVEL_HIGH_BEAUTY &&
-                            (romEntry.romType == Gen3Constants.RomType_FRLG || romEntry.romCode.equals("SPDC"))) {
+                            (romEntry.romType == Gen3Constants.RomType_FRLG || romEntry.romCode.matches("^(SPDC|MBDN)$"))) {
                         // beauty change to level 35
                         evo.type = EvolutionType.LEVEL;
                         evo.extraInfo = 35;
